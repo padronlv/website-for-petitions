@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS profiles;
+
+CREATE TABLE profiles (
+    id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL UNIQUE,
+    age INT,
+    city VARCHAR(100),
+    url VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);

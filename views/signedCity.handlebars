@@ -1,0 +1,18 @@
+{{> navIn }}
+{{> headerBlinds }}
+
+<div class="container">
+    <h1>Pro-Blinds Movement</h1>
+
+    <h2>Thank you for your contribution to make germany a better place</h2>
+
+    <ul><p>Your Co-Signers in {{ city }}!</p>
+        {{#each userList }}
+
+        <li>
+            {{ first_name }}, {{ age }}, <a href="/signed/{{ city }}">{{ city }}</a>
+        </li>
+        {{/each}}
+    </ul>
+
+</div>

@@ -30,35 +30,40 @@ app.use(function(req, res, next) {
 
 
 
-console.log(db);
-
-
-app.get('/', checkForSig2, (req, res) => {
-    res.render('home', {
-        layout: 'main'
-    });
+app.get('/petition', checkForNoLog, (req, res) => {
+    db.getYourSignature(req.session.userId)
+        .then(user => {
+            if (user == undefined) {
+                res.render('petition', {
+                    layout: 'main'
+                });
+            } else {
+                res.redirect('/thanks');
+            }
+            // console.log(user)
+        }).catch(err => {
+            console.log(err);
+        });
 });
 
-app.post('/', (req, res) => {
+app.post('/petition', (req, res) => {
     // console.log(req.body);
-    db.insertSigner(req.body.firstname, req.body.lastname, req.body.signature)
-        .then(newSigner => {
-            req.session.signatureId = newSigner.id;
+    db.insertSigner(req.session.userId, req.body.signature)
+        .then(() => {
             // console.log(newUser);
             res.redirect('/thanks');
         }).catch(() => {
-            res.render('home', {
+            res.render('petition', {
                 layout: 'main',
-                err : "Please fill all the fields"
+                err : "Please sign in the field below"
             });
 
         });
 
 });
 
-
-app.get('/thanks', checkForSig, (req, res) => {
-    db.getYourSignature(req.session.signatureId)
+app.get('/thanks', checkForNoLog, checkForNoSig, (req, res) => {
+    db.getYourSignature(req.session.userId)
         .then(user => {
             // console.log(user)
             res.render('thanks', {
@@ -71,13 +76,19 @@ app.get('/thanks', checkForSig, (req, res) => {
 
 });
 
-app.get('/notsigned', (req, res) => {
-    res.render('notSigned', {
-        layout: 'main'
-    });
+app.post('/thanks', (req, res) => {
+    // console.log(req.body);
+    db.deleteSignature(req.session.userId)
+        .then(() => {
+            // console.log(newUser);
+            res.redirect('/petition');
+        }).catch((error) => {
+            console.log(error);
+        });
+
 });
 
-app.get('/signed', (req, res) => {
+app.get('/signed', checkForNoLog, checkForNoSig, (req, res) => {
     db.getSigners()
         .then(userList => {
             res.render('signed', {
@@ -89,62 +100,210 @@ app.get('/signed', (req, res) => {
         });
 });
 
-app.get('/register', (req, res) => {
+app.get('/signed/:city', checkForNoLog, checkForNoSig, (req, res) => {
+    db.getSignersByCity(req.params.city)
+        .then(userList => {
+            res.render('signedCity', {
+                layout: 'main',
+                userList: userList,
+            });
+        }).catch(err => {
+            console.log(err);
+        });
+});
+
+app.get('/register', checkForLog, (req, res) => {
     res.render('register', {
         layout: 'main',
     });
 });
+
 app.post('/register', (req, res) => {
-    const hashedUserPassword = bc.hashPassword(req.body.password)
+    bc.hashPassword(req.body.password)
         .then(hashedPassword => {
             console.log("hashedPassword: ", hashedPassword);
-            return hashedPassword;
+            db.insertUser(req.body.firstname, req.body.lastname, req.body.email, hashedPassword)
+                .then(newUser => {
+                    req.session.userId = newUser.id;
+                    console.log(req.session.userId);
+                    // console.log(newUser);
+                    res.redirect('/profile');
+                }).catch(() => {
+                    res.render('register', {
+                        layout: 'main',
+                        err : "You have not filled in all the required fields or your Email is already taken, please try again"
+                    });
+                });
         })
         .catch(err => {
             console.log(err);
         });
-    console.log(hashedUserPassword);
     // console.log(req.body);
-    db.insertUser(req.body.firstname, req.body.lastname, req.body.email, hashedUserPassword)
-        .then(newUser => {
-            req.session.userId = newUser.id;
-            // console.log(newUser);
-            res.redirect('/petitions');
-        }).catch(() => {
-            res.render('register', {
+});
+
+app.get('/profile', checkForNoLog, (req, res) => {
+    res.render('profile', {
+        layout: 'main',
+    });
+});
+
+app.post('/profile', (req, res) => {
+    db.insertProfile(req.session.userId, req.body.age, req.body.city, req.body.url)
+        .then(newProfile => {
+            console.log(newProfile);
+            res.redirect('/petition');
+        })
+        .catch((error) => {
+            console.log(error);
+            res.render('profile', {
                 layout: 'main',
-                err : "Please fill all the fields"
+                err : "Something wrong happened"
             });
+        });
+    // console.log(req.body);
+});
+
+app.get('/profile/edit', checkForNoLog, (req, res) => {
+    db.getYourUserInfo(req.session.userId)
+        .then(userInfo => {
+            // console.log(userInfo);
+            res.render('editProfile', {
+                layout: 'main',
+                userInfo: userInfo
+            });
+        })
+        .catch((error) => {
+            console.log(error);
         });
 });
 
-app.get('/login', (req, res) => {
+app.post('/profile/edit', (req, res) => {
+    if (req.body.password.length == 0) {
+        // console.log(req.body.password);
+        db.editUserNoPassword(req.session.userId, req.body.firstName, req.body.lastName, req.body.email)
+            .then(updatedUserInfo => {
+                console.log(updatedUserInfo);
+                // res.redirect('/profile/edit');
+            })
+            .catch((e) => {
+                console.log(e);
+                db.getYourUserInfo(req.session.userId)
+                    .then(userInfo => {
+                        // console.log(userInfo);
+                        return res.render('editProfile', {
+                            layout: 'main',
+                            userInfo: userInfo,
+                            err : "You have not filled in all the required fields or your new Email is already taken, please try again"
+                        });
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+            });
+    } else {
+        bc.hashPassword(req.body.password)
+            .then(hashedPassword => {
+                db.editUserPassword(req.session.userId, req.body.firstName, req.body.lastName, req.body.email, hashedPassword)
+                    .then(updatedUserInfo => {
+                        // console.log(updatedUserInfo);
+                        // return res.redirect('/profile/edit');
+                    })
+                    .catch(() => {
+                        db.getYourUserInfo(req.session.userId)
+                            .then(userInfo => {
+                                // console.log(userInfo);
+                                return res.render('editProfile', {
+                                    layout: 'main',
+                                    userInfo: userInfo,
+                                    err : "You have not filled in all the required fields or your Email is already taken, please try again"
+                                });
+                            })
+                            .catch((error) => {
+                                console.log(error);
+                            });
+                    });
+            })
+            .catch(err => {
+                console.log(err);
+            });
+
+    }
+    db.editProfile(req.session.userId, req.body.age, req.body.city, req.body.url)
+        .then(updatedProfileInfo => {
+            console.log(updatedProfileInfo);
+            return res.redirect('/profile/edit');
+        })
+        .catch((er) => {
+            console.log(er);
+        });
+    // console.log(req.body);
+});
+
+
+app.get('/login', checkForLog, (req, res) => {
     res.render('logIn', {
         layout: 'main',
     });
 });
-// app.post('/login', (req, res) => {
-//     const hashedUserPassword = bc.hashPassword(req.body.password)
-//         .then(hashedPassword => {
-//             console.log("hashedPassword: ", hashedPassword);
-//             return hashedPassword;
-//         })
-//         .catch(err => {
-//             console.log(err);
-//         });
-//     // console.log(req.body);
-//     db.insertUser(req.body.firstname, req.body.lastname, req.body.email, hashedUserPassword)
-//         .then(newUser => {
-//             req.session.userId = newUser.id;
-//             // console.log(newUser);
-//             res.redirect('/petitions');
-//         }).catch(() => {
-//             res.render('register', {
-//                 layout: 'main',
-//                 err : "Please fill all the fields"
-//             });
-//         });
-// });
+
+app.post('/login', (req, res) => {
+    console.log("posting is working");
+    db.getYourUser(req.body.email)
+        .then(user => {
+            bc.checkPassword(req.body.password, user.hashed_password)
+                .then(doThePasswordsMatch => {
+                    console.log("doThePasswordsMatch: ", doThePasswordsMatch);
+                    if (doThePasswordsMatch) {
+                        req.session.userId = user.id;
+                        console.log(req.session.userId);
+                        res.redirect('/petition');
+                    } else {
+                        console.log("false password page")
+                        res.render('logIn', {
+                            layout: 'main',
+                            error: "The password is wrong, please try again"
+                        });
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+        })
+        .catch(err => {
+            console.log(err);
+        });
+});
+
+app.get('/logout', checkForNoLog,(req, res) => {
+    req.session.userId = null;
+    res.render('logOut', {
+        layout: 'main',
+    });
+});
+
+app.post('/logout', (req, res) => {
+    console.log("posting is working");
+    db.getYourUser(req.body.email)
+        .then(user => {
+            bc.checkPassword(req.body.password, user.hashed_password)
+                .then(doThePasswordsMatch => {
+                    console.log("doThePasswordsMatch: ", doThePasswordsMatch);
+                    if (doThePasswordsMatch) {
+                        req.session.userId = user.id;
+                        console.log(req.session.userId);
+                        res.redirect('/petition');
+                    } else {
+                        res.redirect('/login');
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                });
+        })
+        .catch(err => {
+            console.log(err);
+        });
+});
 
 // app.get('/hash-practice', (req, res) => {
 //     bc.hashPassword("trustno1")
@@ -161,19 +320,40 @@ app.get('/login', (req, res) => {
 //
 // });
 
-app.listen(8080, () => {
+app.listen(process.env.PORT || 8080, () => {
     console.log('listening  on port 8080');
 });
 
 
-function checkForSig( req, res, next) {
-    !req.session.signatureId
-        ? res.redirect('/')
+function checkForNoSig( req, res, next) {
+
+    db.getYourSignature(req.session.userId)
+        .then(signature => {
+            if (signature == undefined) {
+                res.redirect('/petition');
+            } else {
+                next();
+            }
+            // console.log(user)
+        }).catch(err => {
+            console.log(err);
+        });
+}
+
+// function checkForLog ( req, res, next) {
+//     req.session.userId
+//         ? res.redirect('/petition')
+//         : next();
+// }
+
+function checkForLog ( req, res, next) {
+    req.session.userId
+        ? res.redirect('/petition')
         : next();
 }
 
-function checkForSig2( req, res, next) {
-    req.session.signatureId
-        ? res.redirect('/thanks')
+function checkForNoLog ( req, res, next) {
+    !req.session.userId
+        ? res.redirect('/login')
         : next();
 }
