@@ -28,6 +28,10 @@ app.use(function(req, res, next) {
     next();
 });
 
+app.get('/', checkForLog, (req, res) => {
+    res.redirect('/login');
+});
+
 
 
 app.get('/petition', checkForNoLog, (req, res) => {
