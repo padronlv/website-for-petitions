@@ -2,17 +2,33 @@
 {{> headerBlinds }}
 
 <div class="container">
-    <h1>Pro-Blinds Movement</h1>
-
+    <h2>Petition to install Blinds in every flat in Germany</h2>
     <h2>Thank you for your contribution to make germany a better place</h2>
 
-    <ul><p>Your Co-Signers in {{ city }}!</p>
+    <ul><h3>List of Heroes in {{ cityClicked }}!</h3>
         {{#each userList }}
 
-        <li>
-            {{ first_name }}, {{ age }}, <a href="/signed/{{ city }}">{{ city }}</a>
-        </li>
+        <div class="signers">
+            <li>
+                {{#if url}}
+                    <a href="{{url}}">{{first_name}} {{last_name}}</a>
+                {{else}}
+                    {{first_name}} {{last_name}}
+                {{/if}}
+                {{#if age}}
+                    , {{age}}
+                {{/if}}
+                {{#if city}}
+                    , <a href="/signed/{{city}}">{{city}}</a>
+                {{/if}}
+            </li>
+        </div>
         {{/each}}
     </ul>
+</div>
+
+
+
+
 
 </div>

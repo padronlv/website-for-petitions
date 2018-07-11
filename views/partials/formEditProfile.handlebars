@@ -1,18 +1,41 @@
-<form class="form edit" method="post">
-    <h3>First Name</h3>
-    <input type="text" name="firstName" value="{{ userInfo.first_name }}">
-    <h3>Last Name</h3>
-    <input type="text" name="lastName" value="{{ userInfo.last_name }}">
-    <h3>Email</h3>
-    <input type="email" name="email" value="{{ userInfo.email }}">
-    <h3>Password</h3>
-    <input type="text" name="password" placeholder="empty = NO changes">
-    <h3>Age</h3>
-    <input type="number" name="age" value="{{ userInfo.age }}"/>
-    <h3>City</h3>
-    <input type="text" name="city" value ="{{ userInfo.city }}" />
-    <h3>url</h3>
-    <input type="text" name="url" value="{{ userInfo.url }}">
+<form class="form edit borderForm" method="post">
+    <div class="fieldEdit">
+        <h3 class="param">First Name</h3>
+        <input type="text" name="firstName" value="{{ userInfo.first_name }}">
+
+    </div>
+    <div class="fieldEdit">
+        <h3 class="param">Last Name</h3>
+        <input type="text" name="lastName" value="{{ userInfo.last_name }}">
+
+    </div>
+    <div class="fieldEdit">
+        <h3 class="param">Email</h3>
+        <input type="email" name="email" value="{{ userInfo.email }}">
+
+    </div>
+    <div class="fieldEdit">
+        <h3 class="param">Password</h3>
+        <input type="text" name="password" placeholder="empty = NO changes">
+
+    </div>
+    <div class="fieldEdit">
+        <h3 class="param">Age</h3>
+        <input type="number" name="age" value="{{ userInfo.age }}"/>
+
+    </div>
+    <div class="fieldEdit">
+        <h3 class="param">City</h3>
+        <input type="text" name="city" value ="{{ userInfo.city }}" />
+
+    </div>
+    <div class="fieldEdit">
+        <h3 class="param">url</h3>
+        <input type="text" name="url" value="{{ userInfo.url }}">
+
+    </div>
+
+
     <input type="hidden" name="_csrf" value="{{csrfToken}}">
     <button class="submit" type="submit">Update</button>
 </form>

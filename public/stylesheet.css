@@ -1,3 +1,14 @@
+* {
+    box-sizing:border-box;
+    font-family: Calibri;
+    color: darkblue;
+}
+
+body {
+    margin: 0;
+}
+
+
 canvas {
     border: 3px black solid;
 }
@@ -22,10 +33,13 @@ body {
 }
 
 .nav {
+    width: 100%;
     display: flex;
     align-items: center;
     background-color: darkblue;
     height: 50px;
+    position: fixed;
+    z-index: 100;
 }
 
 .container {
@@ -37,7 +51,7 @@ body {
 }
 
 input {
-    border-radius: 10px;
+    border-radius: 8px;
     margin: 5px;
     display:block;
     width: 300px;
@@ -71,6 +85,30 @@ nav a {
     color: white;
 }
 
-.edit {
+.titleContainer {
+    position: relative;
+}
 
+.title {
+    /* border: 1px solid red; */
+    font-size: 40px;
+    position: absolute;
+    top: 50%;
+    text-align: center;
+    width: 100%;
+    transform: translateY(-50%);
+}
+
+.param{
+    width: 120px;
+}
+
+.fieldEdit {
+    display: flex;
+}
+
+.borderForm {
+    padding: 10px;
+    border-radius: 20px;
+    border: 3px solid darkblue;
 }

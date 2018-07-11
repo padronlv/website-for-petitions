@@ -110,6 +110,7 @@ app.get('/signed/:city', checkForNoLog, checkForNoSig, (req, res) => {
             res.render('signedCity', {
                 layout: 'main',
                 userList: userList,
+                cityClicked: req.params.city
             });
         }).catch(err => {
             console.log(err);
@@ -251,27 +252,35 @@ app.get('/login', checkForLog, (req, res) => {
 });
 
 app.post('/login', (req, res) => {
-    console.log("posting is working");
     db.getYourUser(req.body.email)
         .then(user => {
-            bc.checkPassword(req.body.password, user.hashed_password)
-                .then(doThePasswordsMatch => {
-                    console.log("doThePasswordsMatch: ", doThePasswordsMatch);
-                    if (doThePasswordsMatch) {
-                        req.session.userId = user.id;
-                        console.log(req.session.userId);
-                        res.redirect('/petition');
-                    } else {
-                        console.log("false password page")
-                        res.render('logIn', {
-                            layout: 'main',
-                            error: "The password is wrong, please try again"
-                        });
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
+            if(user == undefined) {
+                console.log("posting is working");
+                res.render('logIn', {
+                    layout: 'main',
+                    error: "The Email doesn't match any user"
                 });
+            } else {
+                bc.checkPassword(req.body.password, user.hashed_password)
+                    .then(doThePasswordsMatch => {
+                        console.log("doThePasswordsMatch: ", doThePasswordsMatch);
+                        if (doThePasswordsMatch) {
+                            req.session.userId = user.id;
+                            console.log(req.session.userId);
+                            res.redirect('/petition');
+                        } else {
+                            console.log("false password page");
+                            res.render('logIn', {
+                                layout: 'main',
+                                error: "The password is wrong, please try again"
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+            }
+
         })
         .catch(err => {
             console.log(err);
@@ -286,28 +295,41 @@ app.get('/logout', checkForNoLog,(req, res) => {
 });
 
 app.post('/logout', (req, res) => {
-    console.log("posting is working");
     db.getYourUser(req.body.email)
         .then(user => {
-            bc.checkPassword(req.body.password, user.hashed_password)
-                .then(doThePasswordsMatch => {
-                    console.log("doThePasswordsMatch: ", doThePasswordsMatch);
-                    if (doThePasswordsMatch) {
-                        req.session.userId = user.id;
-                        console.log(req.session.userId);
-                        res.redirect('/petition');
-                    } else {
-                        res.redirect('/login');
-                    }
-                })
-                .catch(err => {
-                    console.log(err);
+            if(user == undefined) {
+                console.log("posting is working");
+                res.render('logOut', {
+                    layout: 'main',
+                    error: "The Email doesn't match any user"
                 });
+            } else {
+                bc.checkPassword(req.body.password, user.hashed_password)
+                    .then(doThePasswordsMatch => {
+                        console.log("doThePasswordsMatch: ", doThePasswordsMatch);
+                        if (doThePasswordsMatch) {
+                            req.session.userId = user.id;
+                            console.log(req.session.userId);
+                            res.redirect('/petition');
+                        } else {
+                            console.log("false password page");
+                            res.render('logOut', {
+                                layout: 'main',
+                                error: "The password is wrong, please try again"
+                            });
+                        }
+                    })
+                    .catch(err => {
+                        console.log(err);
+                    });
+            }
+
         })
         .catch(err => {
             console.log(err);
         });
 });
+
 
 // app.get('/hash-practice', (req, res) => {
 //     bc.hashPassword("trustno1")
