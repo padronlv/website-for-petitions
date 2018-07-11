@@ -1,6 +1,12 @@
 const spicedPg = require('spiced-pg');
+var db;
 
-const db = spicedPg('postgres:Victor:postgres@localhost:5432/petition');
+if(process.env.DATABASE_URL) {
+    db = spicedPg(process.env.DATABASE_URL);
+} else {
+    db = spicedPg('postgres:Victor:postgres@localhost:5432/petition');
+}
+
 
 module.exports.getSigners = function () {
     return db.query(`SELECT profiles.age, profiles.city , users.first_name
