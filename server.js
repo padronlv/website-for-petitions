@@ -153,7 +153,7 @@ app.get('/profile', checkForNoLog, (req, res) => {
 });
 
 app.post('/profile', (req, res) => {
-    db.insertProfile(req.session.userId, req.body.age, req.body.city, req.body.url)
+    db.editProfile(req.session.userId, req.body.age, req.body.city, req.body.url)
         .then(newProfile => {
             console.log(newProfile);
             res.redirect('/petition');
