@@ -32,10 +32,6 @@ body {
     font-size: 25px;
 }
 
-.nav li:hover{
-    font-color: red;    
-}
-
 .nav {
     width: 100%;
     display: flex;
@@ -45,6 +41,9 @@ body {
     position: fixed;
     z-index: 100;
 }
+/* .nav:hover{
+    background-color: red;
+} */
 
 .container {
     /* width: 100%; */
@@ -95,6 +94,10 @@ a {
 
 nav a {
     color: white;
+}
+
+nav a:hover {
+    color: red;
 }
 
 .titleContainer {
