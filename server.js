@@ -236,7 +236,18 @@ app.post('/profile/edit', (req, res) => {
     db.editProfile(req.session.userId, req.body.age, req.body.city, req.body.url)
         .then(updatedProfileInfo => {
             console.log(updatedProfileInfo);
-            return res.redirect('/profile/edit');
+            db.getYourUserInfo(req.session.userId)
+                .then(userInfo => {
+                    // console.log(userInfo);
+                    res.render('editProfile', {
+                        layout: 'main',
+                        userInfo: userInfo,
+                        err: "Your profile has been updated"
+                    });
+                })
+                .catch((error) => {
+                    console.log(error);
+                });
         })
         .catch((er) => {
             console.log(er);
